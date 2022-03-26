@@ -1,5 +1,5 @@
 <template>
-  <div class="pure">
+  <div class="pure" v-loading="loading" element-loading-text="拼命加载中">
     <el-card>
       <el-form>
         <el-form-item class="operate">
@@ -16,13 +16,7 @@
           <el-button @click="search" round plain>查询</el-button>
         </el-form-item>
       </el-form>
-      <el-table
-        ref="tableRef"
-        :data="pageDataList"
-        max-height="520px"
-        v-loading="loading"
-        element-loading-text="拼命加载中"
-      >
+      <el-table ref="tableRef" :data="pageDataList" max-height="520px">
         <el-table-column label="No." type="index" align="center">
         </el-table-column>
         <el-table-column label="歌手名称" align="center">
@@ -34,8 +28,19 @@
               class="image"
               :preview-src-list="[scope.row.img1v1Url]"
               :src="scope.row.img1v1Url"
-            ></el-image
-          ></template>
+            >
+              <!-- 占位内容 -->
+              <div slot="placeholder" class="image-container">
+                <div class="image-middle">
+                  <loading></loading>
+                </div>
+              </div>
+              <!-- 加载失败 -->
+              <div slot="error" class="image-slot">
+                <i class="el-icon-picture-outline"></i>
+              </div>
+            </el-image>
+          </template>
         </el-table-column>
         <el-table-column label="别名" align="center">
           <template slot-scope="scope">{{
@@ -66,7 +71,9 @@
 <script>
 import { asyncGetReq } from "../../utils/request";
 import Utils from "../../utils/index";
+import Loading from "../../components/common/loading.vue";
 export default {
+  components: { Loading },
   data() {
     return {
       /**
@@ -99,8 +106,10 @@ export default {
     };
   },
   async created() {
+    this.loading = true;
     await this.getOriginDataList();
     await this.search();
+    this.loading = false;
   },
   methods: {
     /**
@@ -126,7 +135,6 @@ export default {
      * 分页
      */
     async pageList() {
-      this.loading = true;
       this.filterDataList = this.originDataList.filter(item =>
         item.name.includes(this.queryParams.artistName)
       );
@@ -137,7 +145,6 @@ export default {
         this.page.pageNo,
         this.page.pageSize
       );
-      this.loading = false;
       // console.log("filterDataList", this.filterDataList);
       // console.log("pageDataList", this.pageDataList);
     },
@@ -207,5 +214,18 @@ export default {
 .image {
   height: 96px;
   width: 96px;
+}
+
+.image-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.image-middle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 </style>
